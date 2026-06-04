@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dunia Musik Ceria - MPI SD Kelas 1</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: #f0fdf4;
+        }
+        .font-kids-title {
+            font-family: 'Fredoka One', cursive;
+        }
+        /* Custom Animations for Kids App */
+        @keyframes bounce-slow {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-12px) rotate(3deg); }
+        }
+        @keyframes shake-instrument {
+            0%, 100% { transform: rotate(0deg); }
+            20%, 60% { transform: rotate(-8deg); }
+            40%, 80% { transform: rotate(8deg); }
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            100% { transform: scale(1.6); opacity: 0; }
+        }
+        .animate-bounce-slow {
+            animation: bounce-slow 4s ease-in-out infinite;
+        }
+        .animate-shake {
+            animation: shake-instrument 0.6s ease-in-out;
+        }
+        .pulse-wave {
+            position: absolute;
+            border: 4px solid #f59e0b;
+            border-radius: 50%;
+            animation: pulse-ring 1.2s cubic-bezier(0.215, 0.610, 0.355, 1) infinite;
+        }
+    </style>
+</head>
+<body class="overflow-x-hidden min-h-screen flex flex-col justify-between text-slate-800">
+
+    <header class="bg-gradient-to-r from-amber-400 via-rose-400 to-sky-400 p-4 shadow-lg text-white">
+        <div class="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div class="flex items-center gap-3 cursor-pointer" onclick="showScreen('welcome')">
+                <span class="text-4xl animate-bounce">🎶</span>
+                <div>
+                    <h1 class="font-kids-title text-2xl md:text-3xl tracking-wide drop-shadow-md">Dunia Musik Ceria</h1>
+                    <p class="text-xs font-bold bg-white/20 px-2 py-0.5 rounded-full inline-block">MPI Tematik SD Kelas 1</p>
+                </div>
+            </div>
+            
+            <!-- Navigation Tabs -->
+            <nav class="flex gap-2">
+                <button onclick="showScreen('belajar')" class="nav-btn bg-white text-rose-500 font-bold px-4 py-2 rounded-full shadow hover:scale-105 transition-all text-sm flex items-center gap-1">
+                    📖 Belajar
+                </button>
+                <button onclick="showScreen('kuis')" class="nav-btn bg-white text-sky-600 font-bold px-4 py-2 rounded-full shadow hover:scale-105 transition-all text-sm flex items-center gap-1">
+                    🎮 Kuis Bintang
+                </button>
+                <button onclick="activateAudioContext()" id="audio-status-btn" class="bg-rose-600 text-white font-bold px-3 py-2 rounded-full text-xs animate-pulse">
+                    🔊 Aktifkan Suara
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Dynamic Content Canvas -->
+    <main class="max-w-4xl w-full mx-auto px-4 py-6 flex-grow">
+        
+        <!-- SCREEN 1: WELCOME / HOME -->
+        <section id="screen-welcome" class="screen-panel text-center flex flex-col items-center justify-center py-10">
+            <div class="relative mb-6">
+                <div class="absolute -inset-1 rounded-full bg-gradient-to-r from-yellow-400 to-pink-500 blur opacity-40 animate-pulse"></div>
+                <div class="relative bg-white p-6 rounded-3xl shadow-xl flex flex-col items-center">
+                    <span class="text-8xl animate-bounce-slow inline-block">🦊</span>
+                    <p class="text-sm font-bold text-rose-500 mt-2">Halo Sahabat Cilik! Aku Kiko si Rubah Musik!</p>
+                </div>
+            </div>
+            
+            <h2 class="font-kids-title text-3xl md:text-4xl text-slate-700 mb-3 leading-tight">
+                Ayo Belajar Mengenal <br>
+                <span class="text-amber-500">Alat Musik Tradisional</span> & <span class="text-sky-500">Modern</span>!
+            </h2>
+            <p class="text-slate-600 max-w-md mx-auto mb-8 text-base font-medium">
+                Dengarkan suaranya yang merdu, ketahui cara memainkannya, dan kumpulkan <span class="text-amber-500 font-bold">Bintang ⭐</span> di kuis pintar!
+            </p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-md">
+                <button onclick="showScreen('belajar')" class="group relative bg-amber-400 hover:bg-amber-500 text-slate-900 font-bold p-6 rounded-2xl shadow-xl transform hover:-translate-y-1 transition duration-200 text-lg flex flex-col items-center gap-2">
+                    <span class="text-4xl group-hover:scale-110 transition">🥁</span>
+                    <span>1. Mulai Belajar</span>
+                </button>
+                <button onclick="startQuiz()" class="group relative bg-sky-400 hover:bg-sky-500 text-white font-bold p-6 rounded-2xl shadow-xl transform hover:-translate-y-1 transition duration-200 text-lg flex flex-col items-center gap-2">
+                    <span class="text-4xl group-hover:scale-110 transition">⭐</span>
+                    <span>2. Main Kuis Pintar</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- SCREEN 2: LEARNING CENTER -->
+        <section id="screen-belajar" class="screen-panel hidden">
+            <!-- Learning Sub-Tabs -->
+            <div class="flex justify-center gap-4 mb-6">
+                <button id="tab-tradisional" onclick="switchCategory('tradisional')" class="px-6 py-3 rounded-2xl font-kids-title text-lg shadow-md transition-all scale-105 bg-amber-400 text-slate-900 border-2 border-amber-500">
+                    🇮🇩 Tradisional
+                </button>
+                <button id="tab-modern" onclick="switchCategory('modern')" class="px-6 py-3 rounded-2xl font-kids-title text-lg shadow-md transition-all bg-slate-100 text-slate-500 border border-slate-300">
+                    ⚡ Modern
+                </button>
+            </div>
+
+            <p class="text-center text-slate-500 font-bold mb-6">👇 Sentuh gambar untuk memainkan alat musiknya!</p>
+
+            <!-- Cards Container for Traditional -->
+            <div id="container-tradisional" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Instrument Card: Angklung -->
+                <div class="bg-white p-5 rounded-3xl shadow-lg border-t-8 border-amber-500 flex flex-col justify-between hover:shadow-xl transition relative overflow-hidden group">
+                    <div>
+                        <div class="flex justify-between items-start mb-4">
+                            <span class="bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1 rounded-full">Asal: Jawa Barat</span>
+                            <span class="text-xs font-extrabold text-amber-500 uppercase tracking-wide">Tradisional</span>
+                        </div>
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="w-20 h-20 bg-amber-50 rounded-2xl flex items-center justify-center text-4xl shadow-inner cursor-pointer relative" onclick="playInstrument('angklung', this)">
+                                <span class="emoji-icon">🎋</span>
+                                <div class="wave-holder"></div>
+                            </div>
+                            <div>
+                                <h3 class="font-kids-title text-xl text-slate-800">Angklung</h3>
+                                <p class="text-xs text-slate-500 font-bold">Cara Main: <span class="text-rose-500">👋 Digoyangkan</span></p>
+                                <p class="text-xs text-slate-500 font-bold">Suara: <span class="text-amber-600">"Klung... Klung..."</span></p>
+                            </div>
+                        </div>
+                        <p class="text-sm text-slate-600 bg-amber-50/50 p-3 rounded-xl border border-dashed border-amber-200">
+                            Angklung dibuat dari bambu istimewa. Goyangkan tanganmu untuk memainkannya secara bersama-sama!
+                        </p>
+                    </div>
+                    <button onclick="playInstrument('angklung', this)" class="mt-4 bg-amber-400 hover:bg-amber-500 text-slate-900 font-bold py-2 px-4 rounded-xl text-sm transition-all flex items-center justify-center gap-2">
+                        🔊 Dengar Suara
+                    </button>
+                </div>
+
+                <!-- Instrument Card: Kendang -->
+                <div class="bg-white p-5 rounded-3xl shadow-lg border-t-8 border-rose-500 flex flex-col justify-between hover:shadow-xl transition relative overflow-hidden group">
+                    <div>
+                        <div class="flex justify-between items-start mb-4">
+                            <span class="bg-rose-100 text-rose-800 text-xs font-bold px-3 py-1 rounded-full">Asal: Jawa Barat / Tengah</span>
+                            <span class="text-xs font-extrabold text-rose-500 uppercase tracking-wide">Tradisional</span>
+                        </div>
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="w-20 h-20 bg-rose-50 rounded-2xl flex items-center justify-center text-4xl shadow-inner cursor-pointer relative" onclick="playInstrument('kendang', this)">
+                                <span class="emoji-icon">🥁</span>
+                                <div class="wave-holder"></div>
+                            </div>
+                            <div>
+                                <h3 class="font-kids-title text-xl text-slate-800">Kendang</h3>
+                                <p class="text-xs text-slate-500 font-bold">Cara Main: <span class="text-rose-500">✋ Ditepuk/Dipukul</span></p>
+                                <p class="text-xs text-slate-500 font-bold">Suara: <span class="text-amber-600">"Tak... Tung... Ndut..."</span></p>
+                            </div>
+                        </div>
+                        <p class="text-sm text-slate-600 bg-rose-50/50 p-3 rounded-xl border border-dashed border-rose-200">
+                            Kendang terbuat dari kayu dan kulit sapi atau kambing. Dipukul dengan telapak tangan agar bunyinya mantap!
+                        </p>
+                    </div>
+                    <button onclick="playInstrument('kendang', this)" class="mt-4 bg-rose-400 hover:bg-rose-5050 text-white font-bold py-2 px-4 rounded-xl text-sm transition-all flex items-center justify-center gap-2">
+                        🔊 Dengar Suara
+                    </button>
+                </div>
+
+                <!-- Instrument Card: Sasando -->
+                <div class="bg-white p-5 rounded-3xl shadow-lg border-t-8 border-teal-500 flex flex-col justify-between hover:shadow-xl transition relative overflow-hidden group">
+                    <div>
+                        <div class="flex justify-between items-start mb-4">
+                            <span class="bg-teal-100 text-teal-800 text-xs font-bold px-3 py-1 rounded-full">Asal: NTT (Pulau Rote)</span>
+                            <span class="text-xs font-extrabold text-teal-500 uppercase tracking-wide">Tradisional</span>
+                        </div>
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="w-20 h-20 bg-teal-50 rounded-2xl flex items-center justify-center text-4xl shadow-inner cursor-pointer relative" onclick="playInstrument('sasando', this)">
+                                <span class="emoji-icon">🕸️</span>
+                                <div class="wave-holder"></div>
+                            </div>
+                            <div>
+                                <h3 class="font-kids-title text-xl text-slate-800">Sasando</h3>
+                                <p class="text-xs text-slate-500 font-bold">Cara Main: <span class="text-rose-500">👆 Dipetik</span></p>
+                                <p class="text-xs text-slate-500 font-bold">Suara: <span class="text-amber-600">"Tring... Ting... Ting..."</span></p>
+                            </div>
+                        </div>
+                        <p class="text-sm text-slate-600 bg-teal-50/50 p-3 rounded-xl border border-dashed border-teal-200">
+                            Terbuat dari wadah anyaman daun lontar dengan jajaran dawai kawat halus. Dipetik merdu menggunakan jemari indahmu!
+                        </p>
+                    </div>
+                    <button onclick="playInstrument('sasando', this)" class="mt-4 bg-teal-400 hover:bg-teal-500 text-slate-900 font-bold py-2 px-4 rounded-xl text-sm transition-all flex items-center justify-center gap-2">
+                        🔊 Dengar Suara
+                    </button>
+                </div>
+
+                <!-- Instrument Card: Suling -->
+                <div class="bg-white p-5 rounded-3xl shadow-lg border-t-8 border-violet-500 flex flex-col justify-between hover:shadow-xl transition relative overflow-hidden group">
+                    <div>
+                        <div class="flex justify-between items-start mb-4">
+                            <span class="bg-violet-100 text-violet-800 text-xs font-bold px-3 py-1 rounded-full">Asal: Seluruh Indonesia</span>
+                            <span class="text-xs font-extrabold text-violet-500 uppercase tracking-wide">Tradisional</span>
+                        </div>
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="w-20 h-20 bg-violet-50 rounded-2xl flex items-center justify-center text-4xl shadow-inner cursor-pointer relative" onclick="playInstrument('suling', this)">
+                                <span class="emoji-icon">🎋</span>
+                                <div class="wave-holder"></div>
+                            </div>
+                            <div>
+                                <h3 class="font-kids-title text-xl text-slate-800">Suling Bambu</h3>
+                                <p class="text-xs text-slate-500 font-bold">Cara Main: <span class="text-rose-500">🌬️ Ditiup</span></p>
+                                <p class="text-xs text-slate-500 font-bold">Suara: <span class="text-amber-600">"Tuut-tuut-fiuu..."</span></p>
+                            </div>
+                        </div>
+                        <p class="text-sm text-slate-600 bg-violet-50/50 p-3 rounded-xl border border-dashed border-violet-200">
+                            Dibuat dari bambu tipis berlubang. Tiup lubang atasnya dan tutup lubang-lubang kecil dengan jari agar menghasilkan nada!
+                        </p>
+                    </div>
+                    <button onclick="playInstrument('suling', this)" class="mt-4 bg-violet-400 hover:bg-violet-5050 text-slate-950 font-bold py-2 px-4 rounded-xl text-sm transition-all flex items-center justify-center gap-2">
+                        🔊 Dengar Suara
+                    </button>
+                </div>
+            </div>
+
+            <!-- Cards Container for Modern -->
+            <div id="container-modern" class="grid grid-cols-1 md:grid-cols-2 gap-6 hidden">
+                <!-- Instrument Card: Piano -->
+                <div class="bg-white p-5 rounded-3xl shadow-lg border-t-8 border-sky-500 flex flex-col justify-between hover:shadow-xl transition relative overflow-hidden group">
+                    <div>
+                        <div class="flex justify-between items-start mb-4">
+                            <span class="bg-sky-100 text-sky-800 text-xs font-bold px-3 py-1 rounded-full">Alat Musik Modern</span>
+                            <span class="text-xs font-extrabold text-sky-500 uppercase tracking-wide">Modern</span>
+                        </div>
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="w-20 h-20 bg-sky-50 rounded-2xl flex items-center justify-center text-4xl shadow-inner cursor-pointer relative" onclick="playInstrument('piano', this)">
+                                <span class="emoji-icon">🎹</span>
+                                <div class="wave-holder"></div>
+                            </div>
+                            <div>
+                                <h3 class="font-kids-title text-xl text-slate-800">Piano</h3>
+                                <p class="text-xs text-slate-500 font-bold">Cara Main: <span class="text-rose-500">👇 Ditekan tutsnya</span></p>
+                                <p class="text-xs text-slate-500 font-bold">Suara: <span class="text-amber-600">"Teng... Ting... Tong..."</span></p>
+                            </div>
+                        </div>
+                        <p class="text-sm text-slate-600 bg-sky-50/50 p-3 rounded-xl border border-dashed border-sky-200">
+                            Piano memiliki papan tuts berwarna putih dan hitam. Tekan tutsnya menggunakan jarimu dengan santai!
+                        </p>
+                    </div>
+                    <button onclick="playInstrument('piano', this)" class="mt-4 bg-sky-400 hover:bg-sky-500 text-white font-bold py-2 px-4 rounded-xl text-sm transition-all flex items-center justify-center gap-2">
+                        🔊 Dengar Suara
+                    </button>
+                </div>
+
+                <!-- Instrument Card: Gitar -->
+                <div class="bg-white p-5 rounded-3xl shadow-lg border-t-8 border-emerald-500 flex flex-col justify-between hover:shadow-xl transition relative overflow-hidden group">
+                    <div>
+                        <div class="flex justify-between items-start mb-4">
+                            <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full">Alat Musik Modern</span>
+                            <span class="text-xs font-extrabold text-emerald-500 uppercase tracking-wide">Modern</span>
+                        </div>
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="w-20 h-20 bg-emerald-50 rounded-2xl flex items-center justify-center text-4xl shadow-inner cursor-pointer relative" onclick="playInstrument('gitar', this)">
+                                <span class="emoji-icon">🎸</span>
+                                <div class="wave-holder"></div>
+                            </div>
+                            <div>
+                                <h3 class="font-kids-title text-xl text-slate-800">Gitar</h3>
+                                <p class="text-xs text-slate-500 font-bold">Cara Main: <span class="text-rose-500">👆 Dipetik</span></p>
+                                <p class="text-xs text-slate-500 font-bold">Suara: <span class="text-amber-600">"Jreng... Jreng... Jreng..."</span></p>
+                            </div>
+                        </div>
+                        <p class="text-sm text-slate-600 bg-emerald-50/50 p-3 rounded-xl border border-dashed border-emerald-200">
+                            Gitar memiliki enam utas senar utama. Petik atau genjreng senarnya menggunakan tangan kiri dan kanan bersamaan!
+                        </p>
+                    </div>
+                    <button onclick="playInstrument('gitar', this)" class="mt-4 bg-emerald-400 hover:bg-emerald-500 text-slate-900 font-bold py-2 px-4 rounded-xl text-sm transition-all flex items-center justify-center gap-2">
+                        🔊 Dengar Suara
+                    </button>
+                </div>
+
+                <!-- Instrument Card: Drum -->
+                <div class="bg-white p-5 rounded-3xl shadow-lg border-t-8 border-pink-500 flex flex-col justify-between hover:shadow-xl transition relative overflow-hidden group">
+                    <div>
+                        <div class="flex justify-between items-start mb-4">
+                            <span class="bg-pink-100 text-pink-800 text-xs font-bold px-3 py-1 rounded-full">Alat Musik Modern</span>
+                            <span class="text-xs font-extrabold text-pink-500 uppercase tracking-wide">Modern</span>
+                        </div>
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="w-20 h-20 bg-pink-50 rounded-2xl flex items-center justify-center text-4xl shadow-inner cursor-pointer relative" onclick="playInstrument('drum', this)">
+                                <span class="emoji-icon">🥁</span>
+                                <div class="wave-holder"></div>
+                            </div>
+                            <div>
+                                <h3 class="font-kids-title text-xl text-slate-800">Drum</h3>
+                                <p class="text-xs text-slate-500 font-bold">Cara Main: <span class="text-rose-500">🥢 Dipukul (Stik Drum)</span></p>
+                                <p class="text-xs text-slate-500 font-bold">Suara: <span class="text-amber-600">"Dug... Dug... Cess..."</span></p>
+                            </div>
+                        </div>
+                        <p class="text-sm text-slate-600 bg-pink-50/50 p-3 rounded-xl border border-dashed border-pink-200">
+                            Drum dimainkan dengan penuh semangat! Pegang stik pemukul kayu lalu pukul lembaran kulit sirkelnya sesukamu.
+                        </p>
+                    </div>
+                    <button onclick="playInstrument('drum', this)" class="mt-4 bg-pink-400 hover:bg-pink-500 text-white font-bold py-2 px-4 rounded-xl text-sm transition-all flex items-center justify-center gap-2">
+                        🔊 Dengar Suara
+                    </button>
+                </div>
+
+                <!-- Instrument Card: Biola -->
+                <div class="bg-white p-5 rounded-3xl shadow-lg border-t-8 border-orange-500 flex flex-col justify-between hover:shadow-xl transition relative overflow-hidden group">
+                    <div>
+                        <div class="flex justify-between items-start mb-4">
+                            <span class="bg-orange-100 text-orange-800 text-xs font-bold px-3 py-1 rounded-full">Alat Musik Modern</span>
+                            <span class="text-xs font-extrabold text-orange-500 uppercase tracking-wide">Modern</span>
+                        </div>
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="w-20 h-20 bg-orange-50 rounded-2xl flex items-center justify-center text-4xl shadow-inner cursor-pointer relative" onclick="playInstrument('biola', this)">
+                                <span class="emoji-icon">🎻</span>
+                                <div class="wave-holder"></div>
+                            </div>
+                            <div>
+                                <h3 class="font-kids-title text-xl text-slate-800">Biola</h3>
+                                <p class="text-xs text-slate-500 font-bold">Cara Main: <span class="text-rose-500">🎻 Digesek</span></p>
+                                <p class="text-xs text-slate-500 font-bold">Suara: <span class="text-amber-600">"Ngiuung... Ngiuung..."</span></p>
+                            </div>
+                        </div>
+                        <p class="text-sm text-slate-600 bg-orange-50/50 p-3 rounded-xl border border-dashed border-orange-200">
+                            Biola ditaruh di pundak, lalu digesek senarnya menggunakan tongkat penggesek busur khusus secara lembut.
+                        </p>
+                    </div>
+                    <button onclick="playInstrument('biola', this)" class="mt-4 bg-orange-400 hover:bg-orange-500 text-white font-bold py-2 px-4 rounded-xl text-sm transition-all flex items-center justify-center gap-2">
+                        🔊 Dengar Suara
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCREEN 3: INTERACTIVE QUIZ FOR GRADE 1 -->
+        <section id="screen-kuis" class="screen-panel hidden">
+            <!-- Header Kuis -->
+            <div class="bg-white p-6 rounded-3xl shadow-lg border-4 border-dashed border-sky-400 mb-6 text-center">
+                <h3 class="font-kids-title text-2xl text-slate-700">🏆 Kuis Pintar Anak Hebat</h3>
+                <p class="text-sm text-slate-500 mt-1">Ayo tebak pertanyaan di bawah ini dengan menyentuh salah satu balon jawaban!</p>
+                
+                <!-- Progress bar -->
+                <div class="flex items-center justify-between mt-4">
+                    <span id="quiz-question-index" class="text-xs font-bold text-sky-600">Pertanyaan 1/5</span>
+                    <div class="flex gap-1" id="star-indicators">
+                        <!-- Stars will dynamically populate here -->
+                    </div>
+                </div>
+                <div class="w-full bg-slate-100 rounded-full h-3 mt-2">
+                    <div id="quiz-progress-bar" class="bg-sky-400 h-3 rounded-full transition-all duration-300" style="width: 20%"></div>
+                </div>
+            </div>
+
+            <!-- Quiz Layout Dynamic -->
+            <div id="quiz-container" class="bg-white p-6 rounded-3xl shadow-lg">
+                <!-- Question Text -->
+                <div class="text-center mb-6">
+                    <span id="quiz-mascot" class="text-5xl block animate-bounce mb-3">🤔</span>
+                    <h4 id="quiz-question-text" class="font-kids-title text-xl md:text-2xl text-slate-800 leading-snug">Apakah nama alat musik tradisional yang berasal dari Jawa Barat?</h4>
+                </div>
+
+                <!-- Custom Sound Button for Sound Quiz -->
+                <div id="quiz-audio-trigger-container" class="hidden text-center mb-6">
+                    <button onclick="playQuizTargetAudio()" class="bg-rose-400 hover:bg-rose-500 text-white font-bold px-6 py-3 rounded-2xl shadow-lg inline-flex items-center gap-2 text-sm transition hover:scale-105 active:scale-95">
+                        🔊 Dengarkan Bunyi Ini
+                    </button>
+                </div>
+
+                <!-- Multiple Choice Options -->
+                <div id="quiz-options-grid" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <!-- Dynamic Options -->
+                </div>
+            </div>
+
+            <!-- Quiz Result Screen View (Hidden initially) -->
+            <div id="quiz-result-view" class="hidden bg-white p-8 rounded-3xl shadow-lg text-center max-w-md mx-auto border-4 border-yellow-400">
+                <span id="result-emoji" class="text-8xl block animate-bounce mb-4">🥳</span>
+                <h4 class="font-kids-title text-3xl text-slate-800 mb-2">Hore, Hebat Sekali!</h4>
+                <p class="text-slate-600 font-bold mb-4">Kamu berhasil menyelesaikan kuis musik!</p>
+                
+                <!-- Stars collection visual -->
+                <div id="result-stars" class="flex justify-center gap-2 text-4xl mb-6 text-amber-400">
+                    <!-- Dynamic Stars based on Score -->
+                </div>
+                
+                <p id="result-score-text" class="text-lg font-black text-rose-500 mb-6">Skor: 100 / 100</p>
+
+                <div class="flex flex-col gap-3">
+                    <button onclick="startQuiz()" class="bg-amber-400 hover:bg-amber-500 text-slate-900 font-kids-title py-3 px-6 rounded-2xl shadow-md text-lg hover:scale-105 transition">
+                        🔄 Main Lagi
+                    </button>
+                    <button onclick="showScreen('belajar')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2 px-6 rounded-2xl text-sm transition">
+                        📖 Kembali Belajar
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Cute Toast Notification Alert (No alert() as per rules) -->
+    <div id="toast-message" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-slate-900/90 text-white font-bold px-6 py-3 rounded-full text-sm shadow-xl flex items-center gap-2 transition-all opacity-0 pointer-events-none z-50">
+        <span id="toast-emoji">⭐</span>
+        <span id="toast-text">Sempurna!</span>
+    </div>
+
+    <footer class="bg-slate-100 border-t border-slate-200 p-4 text-center text-slate-500 text-xs font-bold">
+        <p>❤️ Dibuat khusus untuk Pembelajaran Tematik Seni Musik SD Kelas 1</p>
+        <p class="mt-1">Dunia Musik Ceria &copy; 2026. Belajar seru dari mana saja!</p>
+    </footer>
+
+    <!-- ToneJS and Interactive Web App Scripts -->
+    <script>
+        let isAudioInitialized = false;
+        
+        // Custom Audio Synthesizers for various instruments
+        let mainSynth, pluckSynth, noiseSynth, fluteSynth;
+
+        function initAudio() {
+            if (isAudioInitialized) return;
+            
+            try {
+                // Synthesizer 1: Warm synth for Piano / Melody
+                mainSynth = new Tone.PolySynth(Tone.Synth, {
+                    oscillator: { type: 'sine' },
+                    envelope: { attack: 0.05, decay: 0.1, sustain: 0.3, release: 0.8 }
+                }).toDestination();
+
+                // Synthesizer 2: Pluck synth for Gitar, Sasando, and Angklung
+                pluckSynth = new Tone.PolySynth(Tone.Synth, {
+                    oscillator: { type: 'triangle' },
+                    envelope: { attack: 0.005, decay: 0.2, sustain: 0.1, release: 0.5 }
+                }).toDestination();
+
+                // Synthesizer 3: Flute simulation (Sine with slow attack)
+                fluteSynth = new Tone.MonoSynth({
+                    oscillator: { type: 'sine' },
+                    envelope: { attack: 0.2, decay: 0.2, sustain: 0.8, release: 0.4 }
+                }).toDestination();
+
+                // Synthesizer 4: Low percussion for Kendang & Drum
+                drumSynth = new Tone.MembraneSynth({
+                    envelope: { attack: 0.001, decay: 0.4, sustain: 0.01, release: 0.4 }
+                }).toDestination();
+
+                // Snare/Cymbal synth for Drum set
+                noiseSynth = new Tone.NoiseSynth({
+                    noise: { type: 'white' },
+                    envelope: { attack: 0.005, decay: 0.1, sustain: 0.001 }
+                }).toDestination();
+
+                isAudioInitialized = true;
+                const btn = document.getElementById('audio-status-btn');
+                if (btn) {
+                    btn.innerText = '✅ Suara Aktif';
+                    btn.classList.remove('bg-rose-600', 'animate-pulse');
+                    btn.classList.add('bg-emerald-500');
+                }
+                showToast('🎉 Suara Berhasil Aktif!', '🔊');
+            } catch (err) {
+                console.error("Gagal inisialisasi suara: ", err);
+            }
+        }
+
+        async function activateAudioContext() {
+            await Tone.start();
+            initAudio();
+        }
+
+        // Automatic audio context check on first click
+        document.body.addEventListener('click', () => {
+            if (!isAudioInitialized) {
+                activateAudioContext();
+            }
+        });
+
+        function playInstrument(type, element) {
+            if (!isAudioInitialized) {
+                activateAudioContext();
+                showToast('Mengaktifkan speaker suara... Ketuk lagi!', '🔊');
+                return;
+            }
+
+            // Trigger Animation inside the interactive circle
+            let visualElement = element.querySelector('.emoji-icon');
+            if (visualElement) {
+                visualElement.classList.add('animate-shake');
+                setTimeout(() => {
+                    visualElement.classList.remove('animate-shake');
+                }, 600);
+            }
+
+            // Visual waves ripple
+            let waveHolder = element.querySelector('.wave-holder');
+            if (waveHolder) {
+                let wave = document.createElement('div');
+                wave.className = 'pulse-wave w-16 h-16 top-2 left-2';
+                waveHolder.appendChild(wave);
+                setTimeout(() => wave.remove(), 1200);
+            }
+
+            // Synthetic Audio Generation based on selected instrument
+            const now = Tone.now();
+            switch (type) {
+                case 'angklung':
+                    // Chime sound like high-pitched repeating notes
+                    pluckSynth.triggerAttackRelease("C6", "16n", now);
+                    pluckSynth.triggerAttackRelease("E6", "16n", now + 0.1);
+                    pluckSynth.triggerAttackRelease("G6", "16n", now + 0.2);
+                    break;
+                case 'kendang':
+                    // Deep thuds
+                    drumSynth.triggerAttackRelease("G2", "4n", now);
+                    setTimeout(() => drumSynth.triggerAttackRelease("C3", "4n"), 150);
+                    break;
+                case 'sasando':
+                    // Plucking sequence
+                    pluckSynth.triggerAttackRelease("E5", "8n", now);
+                    pluckSynth.triggerAttackRelease("A5", "8n", now + 0.15);
+                    pluckSynth.triggerAttackRelease("C6", "8n", now + 0.3);
+                    break;
+                case 'suling':
+                    // Warm fluty sound
+                    fluteSynth.triggerAttackRelease("G5", "4n");
+                    break;
+                case 'piano':
+                    // Clean harmonic chord
+                    mainSynth.triggerAttackRelease(["C4", "E4", "G4"], "4n");
+                    break;
+                case 'gitar':
+                    // Rapid string plucking chord (jreng!)
+                    pluckSynth.triggerAttackRelease("G3", "8n", now);
+                    pluckSynth.triggerAttackRelease("B3", "8n", now + 0.05);
+                    pluckSynth.triggerAttackRelease("D4", "8n", now + 0.1);
+                    pluckSynth.triggerAttackRelease("G4", "8n", now + 0.15);
+                    break;
+                case 'drum':
+                    // Kick and snare
+                    drumSynth.triggerAttackRelease("C2", "8n", now);
+                    setTimeout(() => noiseSynth.triggerAttackRelease("8n"), 150);
+                    break;
+                case 'biola':
+                    // Slow sweeping sound (simulate bow)
+                    fluteSynth.triggerAttackRelease("A4", "2n");
+                    break;
+            }
+        }
+
+        function showScreen(screenId) {
+            // Hide all screen panels
+            document.querySelectorAll('.screen-panel').forEach(panel => {
+                panel.classList.add('hidden');
+            });
+            // Show target screen
+            document.getElementById(`screen-${screenId}`).classList.remove('hidden');
+
+            // Scroll to top of the content automatically
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function switchCategory(category) {
+            const btnTrad = document.getElementById('tab-tradisional');
+            const btnMod = document.getElementById('tab-modern');
+            const listTrad = document.getElementById('container-tradisional');
+            const listMod = document.getElementById('container-modern');
+
+            if (category === 'tradisional') {
+                btnTrad.className = "px-6 py-3 rounded-2xl font-kids-title text-lg shadow-md transition-all scale-105 bg-amber-400 text-slate-900 border-2 border-amber-500";
+                btnMod.className = "px-6 py-3 rounded-2xl font-kids-title text-lg shadow-md transition-all bg-slate-100 text-slate-500 border border-slate-300";
+                listTrad.classList.remove('hidden');
+                listMod.classList.add('hidden');
+            } else {
+                btnMod.className = "px-6 py-3 rounded-2xl font-kids-title text-lg shadow-md transition-all scale-105 bg-sky-400 text-white border-2 border-sky-500";
+                btnTrad.className = "px-6 py-3 rounded-2xl font-kids-title text-lg shadow-md transition-all bg-slate-100 text-slate-500 border border-slate-300";
+                listTrad.classList.add('hidden');
+                listMod.classList.remove('hidden');
+            }
+        }
+
+        const QUIZ_QUESTIONS = [
+            {
+                type: 'text',
+                question: 'Angklung terbuat dari bambu. Bagaimana cara memainkannya?',
+                options: [
+                    { text: '👋 Digoyangkan', isCorrect: true, emoji: '🎋' },
+                    { text: '🌬️ Ditiup', isCorrect: false, emoji: '💨' },
+                    { text: '✋ Dipukul', isCorrect: false, emoji: '🥁' }
+                ],
+                mascot: '🧐'
+            },
+            {
+                type: 'text',
+                question: 'Dari manakah asal daerah alat musik tradisional Sasando?',
+                options: [
+                    { text: 'Sumatra Utara', isCorrect: false, emoji: '🐅' },
+                    { text: 'Nusa Tenggara Timur (NTT)', isCorrect: true, emoji: '🌴' },
+                    { text: 'Jawa Barat', isCorrect: false, emoji: '🗻' }
+                ],
+                mascot: '🗺️'
+            },
+            {
+                type: 'text',
+                question: 'Manakah alat musik MODERN di bawah ini?',
+                options: [
+                    { text: 'Gendang', isCorrect: false, emoji: '🥁' },
+                    { text: 'Angklung', isCorrect: false, emoji: '🎋' },
+                    { text: 'Piano', isCorrect: true, emoji: '🎹' }
+                ],
+                mascot: '💡'
+            },
+            {
+                type: 'audio',
+                targetAudioType: 'drum',
+                question: 'Dengarkan bunyinya! Suara apakah ini?',
+                options: [
+                    { text: 'Drum', isCorrect: true, emoji: '🥁' },
+                    { text: 'Suling', isCorrect: false, emoji: '🎋' },
+                    { text: 'Gitar', isCorrect: false, emoji: '🎸' }
+                ],
+                mascot: '👂'
+            },
+            {
+                type: 'text',
+                question: 'Biola menghasilkan bunyi merdu yang indah dengan cara...',
+                options: [
+                    { text: 'Ditiup', isCorrect: false, emoji: '🌬️' },
+                    { text: 'Digesek', isCorrect: true, emoji: '🎻' },
+                    { text: 'Ditekan', isCorrect: false, emoji: '🎹' }
+                ],
+                mascot: '🎻'
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let starStatusArray = []; // Tracks correct/incorrect per index
+
+        function startQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            starStatusArray = [];
+            
+            // Show Quiz Content Panel & hide result initially
+            document.getElementById('quiz-container').classList.remove('hidden');
+            document.getElementById('quiz-result-view').classList.add('hidden');
+            
+            showScreen('kuis');
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const currentQuestion = QUIZ_QUESTIONS[currentQuestionIndex];
+            
+            // Update Title/Mascot/Progress bar
+            document.getElementById('quiz-question-index').innerText = `Pertanyaan ${currentQuestionIndex + 1}/${QUIZ_QUESTIONS.length}`;
+            document.getElementById('quiz-mascot').innerText = currentQuestion.mascot;
+            document.getElementById('quiz-question-text').innerText = currentQuestion.question;
+            
+            const progressPercent = ((currentQuestionIndex + 1) / QUIZ_QUESTIONS.length) * 100;
+            document.getElementById('quiz-progress-bar').style.width = `${progressPercent}%`;
+
+            // Draw Quiz Stars Live Tracker
+            renderStarProgress();
+
+            // Check if Question is Audio-based
+            const audioContainer = document.getElementById('quiz-audio-trigger-container');
+            if (currentQuestion.type === 'audio') {
+                audioContainer.classList.remove('hidden');
+            } else {
+                audioContainer.classList.add('hidden');
+            }
+
+            // Load and Shuffle Options
+            const optionsGrid = document.getElementById('quiz-options-grid');
+            optionsGrid.innerHTML = '';
+
+            currentQuestion.options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.onclick = () => selectOption(opt.isCorrect, btn);
+                btn.className = "quiz-opt-btn bg-slate-50 hover:bg-sky-50 text-slate-800 border-2 border-slate-200 hover:border-sky-300 font-bold p-5 rounded-2xl shadow transition transform hover:-translate-y-1 flex flex-col items-center justify-center gap-2 active:scale-95";
+                btn.innerHTML = `
+                    <span class="text-4xl mb-1">${opt.emoji}</span>
+                    <span class="text-sm md:text-base">${opt.text}</span>
+                `;
+                optionsGrid.appendChild(btn);
+            });
+        }
+
+        function playQuizTargetAudio() {
+            const currentQuestion = QUIZ_QUESTIONS[currentQuestionIndex];
+            if (currentQuestion && currentQuestion.type === 'audio') {
+                playInstrument(currentQuestion.targetAudioType, document.getElementById('quiz-mascot'));
+            }
+        }
+
+        function renderStarProgress() {
+            const starContainer = document.getElementById('star-indicators');
+            starContainer.innerHTML = '';
+            for (let i = 0; i < QUIZ_QUESTIONS.length; i++) {
+                const star = document.createElement('span');
+                if (i < starStatusArray.length) {
+                    star.innerText = starStatusArray[i] ? '⭐' : '⚪';
+                } else {
+                    star.innerText = '⚫';
+                }
+                star.className = "text-sm";
+                starContainer.appendChild(star);
+            }
+        }
+
+        function selectOption(isCorrect, buttonElement) {
+            // Disable further clicks on option buttons during feedback
+            const allButtons = document.querySelectorAll('.quiz-opt-btn');
+            allButtons.forEach(btn => btn.disabled = true);
+
+            if (isCorrect) {
+                buttonElement.classList.remove('bg-slate-50', 'border-slate-200');
+                buttonElement.classList.add('bg-emerald-500', 'text-white', 'border-emerald-600');
+                score += 20;
+                starStatusArray.push(true);
+                playChimeSound(true);
+                showToast("Hebat! Jawabannya Benar!", "⭐");
+            } else {
+                buttonElement.classList.remove('bg-slate-50', 'border-slate-200');
+                buttonElement.classList.add('bg-rose-500', 'text-white', 'border-rose-600');
+                starStatusArray.push(false);
+                playChimeSound(false);
+                showToast("Ayo coba lagi di pertanyaan selanjutnya!", "💪");
+                
+                // Highlight the correct answer
+                const currentQuestion = QUIZ_QUESTIONS[currentQuestionIndex];
+                const correctIndex = currentQuestion.options.findIndex(opt => opt.isCorrect);
+                if (correctIndex !== -1) {
+                    setTimeout(() => {
+                        const correctBtn = allButtons[correctIndex];
+                        if (correctBtn) {
+                            correctBtn.classList.remove('bg-slate-50', 'border-slate-200');
+                            correctBtn.classList.add('bg-emerald-400', 'text-white', 'border-emerald-500');
+                        }
+                    }, 500);
+                }
+            }
+
+            // Move to next question after short delay
+            setTimeout(() => {
+                currentQuestionIndex++;
+                if (currentQuestionIndex < QUIZ_QUESTIONS.length) {
+                    renderQuestion();
+                } else {
+                    finishQuiz();
+                }
+            }, 2500);
+        }
+
+        function playChimeSound(isCorrect) {
+            if (!isAudioInitialized) return;
+            const now = Tone.now();
+            if (isCorrect) {
+                // Happy upward chime
+                mainSynth.triggerAttackRelease("E5", "8n", now);
+                mainSynth.triggerAttackRelease("G5", "8n", now + 0.1);
+                mainSynth.triggerAttackRelease("C6", "4n", now + 0.2);
+            } else {
+                // Descending sad sound
+                mainSynth.triggerAttackRelease("G4", "8n", now);
+                mainSynth.triggerAttackRelease("Eb4", "2n", now + 0.1);
+            }
+        }
+
+        function finishQuiz() {
+            document.getElementById('quiz-container').classList.add('hidden');
+            document.getElementById('quiz-result-view').classList.remove('hidden');
+
+            const scoreText = document.getElementById('result-score-text');
+            const resultEmoji = document.getElementById('result-emoji');
+            scoreText.innerText = `Skor Kamu: ${score} / 100`;
+
+            const starContainer = document.getElementById('result-stars');
+            starContainer.innerHTML = '';
+
+            // Draw final Star reward
+            let starsEarned = Math.floor(score / 20);
+            for (let i = 0; i < 5; i++) {
+                const star = document.createElement('span');
+                if (i < starsEarned) {
+                    star.innerText = '⭐';
+                    star.className = "animate-bounce inline-block";
+                    // Delayed bouncing effect for each star
+                    star.style.animationDelay = `${i * 0.2}s`;
+                } else {
+                    star.innerText = '☆';
+                    star.className = "text-slate-300";
+                }
+                starContainer.appendChild(star);
+            }
+
+            // Reward Message
+            if (score === 100) {
+                resultEmoji.innerText = "👑";
+                showToast("Sempurna! Kamu adalah Maestro Musik!", "🏆");
+            } else if (score >= 60) {
+                resultEmoji.innerText = "🥳";
+                showToast("Bagus Sekali! Hebat!", "✨");
+            } else {
+                resultEmoji.innerText = "🐱";
+                showToast("Tetap semangat belajar ya!", "💖");
+            }
+        }
+
+        function showToast(message, emoji = '⭐️') {
+            const toast = document.getElementById('toast-message');
+            const tText = document.getElementById('toast-text');
+            const tEmoji = document.getElementById('toast-emoji');
+
+            tText.innerText = message;
+            tEmoji.innerText = emoji;
+
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            toast.classList.add('opacity-100');
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'pointer-events-none');
+                toast.classList.remove('opacity-100');
+            }, 2500);
+        }
+    </script>
+</body>
+</html>
